@@ -419,6 +419,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
     if error_check_ret is not None:
         return error_check_ret
 
+    print('============request start=================')
+    print(json.dumps(request.__dict__,ensure_ascii=False))
+    print('============request end=================')
+
     worker_addr = await get_worker_address(request.model)
 
     gen_params = await get_gen_params(
