@@ -119,6 +119,16 @@ class BaseModelAdapter:
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("one_shot")
 
+    def load_model_from_cache(self, model_path: str, from_pretrained_kwargs: dict):
+        if model_path in peft_model_cache:
+            model, tokenizer = peft_model_cache[model_path]
+        else:
+            adapter = get_model_adapter(model_path)
+            model, tokenizer = adapter.load_model(
+                model_path, from_pretrained_kwargs
+            )
+            peft_model_cache[model_path] = (model, tokenizer)
+        return model, tokenizer
 
 # A global registry for all model adapters
 # TODO (lmzheng): make it a priority queue.
@@ -346,7 +356,10 @@ def load_model(
             raise e
 
     # Load model
-    model, tokenizer = adapter.load_model(model_path, kwargs)
+    if peft_share_base_weights:
+        model, tokenizer = adapter.load_model_from_cache(model_path, kwargs)
+    else:
+        model, tokenizer = adapter.load_model(model_path, kwargs)
 
     if (
         device == "cpu"
