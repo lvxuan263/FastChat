@@ -123,10 +123,7 @@ class BaseModelAdapter:
         if model_path in peft_model_cache:
             model, tokenizer = peft_model_cache[model_path]
         else:
-            adapter = get_model_adapter(model_path)
-            model, tokenizer = adapter.load_model(
-                model_path, from_pretrained_kwargs
-            )
+            model, tokenizer = self.load_model(model_path, from_pretrained_kwargs)
             peft_model_cache[model_path] = (model, tokenizer)
         return model, tokenizer
 
@@ -611,6 +608,9 @@ class PeftModelAdapter:
         if os.path.exists(os.path.join(model_path, "adapter_config.json")):
             return True
         return "peft" in model_path.lower()
+
+    def load_model_from_cache(self, model_path: str, from_pretrained_kwargs: dict):
+        return self.load_model(model_path, from_pretrained_kwargs)
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         """Loads the base model then the (peft) adapter weights"""
